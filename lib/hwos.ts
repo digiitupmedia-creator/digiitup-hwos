@@ -2,6 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 export const rootDir = process.cwd();
+export const isReadOnlyMode = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+export const readOnlyMessage = 'HWOS v0.1 is file-based and must be run locally. Production storage will be added in v0.2.';
 
 export const pipelineStatuses = [
   'Not Started',
@@ -62,6 +64,7 @@ function validateProjectSlug(slug: string) {
 }
 
 export async function ensureSeedContent() {
+  if (isReadOnlyMode) return;
   await Promise.all([
     writeIfMissing('knowledge/01-healthcare-patient-psychology.md', '# Healthcare Patient Psychology\n\nCore reference notes for healthcare patient needs, fears, trust signals, and conversion motivations.\n'),
     writeIfMissing('knowledge/02-healthcare-decision-journey.md', '# Healthcare Decision Journey\n\nReusable journey model from symptom awareness to provider selection and appointment request.\n'),
@@ -95,6 +98,7 @@ export async function readMarkdown(relativePath: string) {
 }
 
 export async function writeMarkdown(relativePath: string, content: string) {
+  if (isReadOnlyMode) return;
   if (!relativePath.endsWith('.md') || relativePath.includes('..')) throw new Error('Invalid Markdown path');
   await fs.writeFile(path.join(rootDir, relativePath), content);
 }
@@ -111,6 +115,7 @@ export async function listProjects() {
 export async function createProject(name: string) {
   const slug = slugify(name);
   if (!slug) throw new Error('Project name must contain letters or numbers.');
+  if (isReadOnlyMode) return slug;
   const base = projectDir(slug);
   await fs.mkdir(path.join(base, 'input'), { recursive: true });
   await fs.mkdir(path.join(base, 'research'), { recursive: true });
@@ -146,12 +151,15 @@ export async function readResearchStatuses(slug: string): Promise<ResearchStatus
     return [item.id, pipelineStatuses.includes(value as PipelineStatus) ? value : defaults[item.id]];
   })) as ResearchStatusMap;
 
-  await fs.mkdir(path.dirname(statusPath), { recursive: true });
-  await fs.writeFile(statusPath, `${JSON.stringify(statuses, null, 2)}\n`, 'utf8');
+  if (!isReadOnlyMode) {
+    await fs.mkdir(path.dirname(statusPath), { recursive: true });
+    await fs.writeFile(statusPath, `${JSON.stringify(statuses, null, 2)}\n`, 'utf8');
+  }
   return statuses;
 }
 
 export async function updateResearchStatus(slug: string, deliverableId: string, status: string) {
+  if (isReadOnlyMode) return;
   validateProjectSlug(slug);
   if (!researchDeliverables.some((item) => item.id === deliverableId)) throw new Error('Invalid deliverable');
   if (!pipelineStatuses.includes(status as PipelineStatus)) throw new Error('Invalid status');
