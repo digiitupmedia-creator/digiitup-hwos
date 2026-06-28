@@ -5,6 +5,7 @@ import {
   loadAgentRegistry,
   loadKnowledgeRegistry,
   loadResearchWorkflow,
+  resolveKnowledgeDocumentPath,
   resolveProjectPath,
 } from '@/lib/registry';
 
@@ -40,7 +41,8 @@ export async function validateRegistries(): Promise<ValidationResult> {
   if (stages.size !== workflow.stages.length) errors.push('Workflow registry contains duplicate stage IDs.');
 
   for (const document of knowledge.documents) {
-    if (!await exists(document.filePath)) errors.push(`Knowledge document ${document.id} is missing: ${document.filePath}`);
+    const documentPath = await resolveKnowledgeDocumentPath(document);
+    if (!documentPath || !await exists(documentPath)) errors.push(`Knowledge document ${document.id} is missing: ${documentPath ?? document.packagePath ?? document.filePath ?? 'no path configured'}`);
     for (const dependency of document.dependencies) {
       if (!documents.has(dependency)) errors.push(`Knowledge document ${document.id} references unknown dependency ${dependency}.`);
     }
@@ -89,7 +91,8 @@ export async function validateAgentContext(agent: AgentDefinition, projectSlug?:
   const documents = new Map(knowledge.documents.map((document) => [document.id, document]));
   for (const id of [...agent.requiredKnowledge, ...agent.requiredArchitectures]) {
     const document = documents.get(id);
-    if (document && !await exists(document.filePath)) errors.push(`Required knowledge ${id} is missing: ${document.filePath}`);
+    const documentPath = document ? await resolveKnowledgeDocumentPath(document) : null;
+    if (document && (!documentPath || !await exists(documentPath))) errors.push(`Required knowledge ${id} is missing: ${documentPath ?? document.packagePath ?? document.filePath ?? 'no path configured'}`);
   }
   if (!projectSlug && (agent.inputDeliverables.length > 0 || agent.requiredDocuments.some((value) => value.includes('{projectSlug}')))) {
     errors.push(`Agent ${agent.id} requires a project before project files, deliverables, and snapshots can be resolved.`);
