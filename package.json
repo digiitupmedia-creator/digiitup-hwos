@@ -1,0 +1,26 @@
+{
+  "name": "digiitup-hwos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest",
+    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.20"
+  }
+}
