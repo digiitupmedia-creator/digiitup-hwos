@@ -1,0 +1,13 @@
+import { loadAgentContext } from '@/lib/context-loader';
+import { listProjects } from '@/lib/hwos';
+import { loadAgentRegistry } from '@/lib/registry';
+
+export default async function ContextPreviewPage({ searchParams }: { searchParams: { agent?: string; project?: string } }) {
+  const [registry, projects] = await Promise.all([loadAgentRegistry(), listProjects()]);
+  const agents = [...registry.agents].sort((a, b) => a.executionOrder - b.executionOrder);
+  const selectedAgent = agents.some((agent) => agent.id === searchParams.agent) ? searchParams.agent! : agents[0].id;
+  const selectedProject = projects.includes(searchParams.project ?? '') ? searchParams.project : undefined;
+  const context = await loadAgentContext(selectedAgent, selectedProject);
+
+  return <div className="space-y-6"><div><h1 className="text-3xl font-bold">Context preview</h1><p className="mt-2 text-slate-600">Read-only context package assembly. No AI is called and no agent executes.</p></div><form method="get" className="grid gap-4 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm md:grid-cols-[1fr_1fr_auto] md:items-end"><label><span className="block text-sm font-semibold">Agent</span><select name="agent" defaultValue={selectedAgent} className="mt-2 w-full rounded-xl border border-emerald-100 bg-white p-3">{agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.executionOrder}. {agent.name}</option>)}</select></label><label><span className="block text-sm font-semibold">Project</span><select name="project" defaultValue={selectedProject ?? ''} className="mt-2 w-full rounded-xl border border-emerald-100 bg-white p-3"><option value="">No project selected</option>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label><button className="rounded-full bg-emerald-700 px-5 py-3 font-semibold text-white">Assemble context</button></form><div className={`rounded-2xl p-4 text-sm ${context.dependencies.validation.valid ? 'bg-emerald-50 text-emerald-900' : 'bg-amber-50 text-amber-900'}`}><p className="font-bold">{context.dependencies.validation.valid ? 'Context dependencies valid' : 'Context requires attention'}</p>{context.dependencies.validation.errors.length > 0 && <ul className="mt-2 list-disc pl-5">{context.dependencies.validation.errors.map((error) => <li key={error}>{error}</li>)}</ul>}</div><section className="rounded-2xl bg-slate-950 p-5 text-sm text-slate-100 shadow-sm"><h2 className="mb-4 text-lg font-bold">Assembled context package</h2><pre className="overflow-x-auto whitespace-pre-wrap break-words">{JSON.stringify(context, null, 2)}</pre></section></div>;
+}

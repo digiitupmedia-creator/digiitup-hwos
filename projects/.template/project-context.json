@@ -1,0 +1,18 @@
+{
+  "projectName": "",
+  "organization": "",
+  "specialty": "",
+  "status": "Active",
+  "currentRDStage": "RD-01",
+  "completedDeliverables": [],
+  "currentAgent": "research-planning-agent",
+  "currentKnowledgeSnapshot": {
+    "canonicalKnowledge": [
+      { "id": "K-01", "version": "1.0.0" },
+      { "id": "K-02", "version": "1.0.0" },
+      { "id": "K-03", "version": "1.0.0" },
+      { "id": "K-04", "version": "1.0.0" }
+    ],
+    "approvedDeliverables": []
+  }
+}

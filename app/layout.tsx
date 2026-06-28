@@ -6,7 +6,7 @@ import './globals.css';
 export const metadata: Metadata = { title: 'Digiitup HWOS', description: 'Healthcare Website Operating System MVP' };
 
 const nav = [
-  ['Dashboard', '/'], ['Projects', '/projects'], ['Create Project', '/projects/new'], ['Knowledge', '/knowledge'], ['Agents', '/agents'],
+  ['Dashboard', '/'], ['Projects', '/projects'], ['Create Project', '/projects/new'], ['Knowledge', '/knowledge'], ['Agents', '/agents'], ['Context', '/context-preview'],
 ];
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

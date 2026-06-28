@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createProjectContext, updateProjectRuntime } from '@/lib/project-runtime';
 
 export const rootDir = process.cwd();
 export const isReadOnlyMode = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
@@ -125,6 +126,7 @@ export async function createProject(name: string) {
     `projects/${slug}/research/status.json`,
     `${JSON.stringify(defaultResearchStatuses(), null, 2)}\n`,
   );
+  await createProjectContext(slug, name.trim());
   return slug;
 }
 
@@ -166,6 +168,10 @@ export async function updateResearchStatus(slug: string, deliverableId: string, 
 
   const statuses = await readResearchStatuses(slug);
   statuses[deliverableId] = status as PipelineStatus;
+  const completedDeliverables = researchDeliverables
+    .filter((item) => statuses[item.id] === 'Approved')
+    .map((item) => item.id);
+  await updateProjectRuntime(slug, deliverableId, status, completedDeliverables);
   const statusPath = path.join(projectDir(slug), 'research', 'status.json');
   await fs.writeFile(statusPath, `${JSON.stringify(statuses, null, 2)}\n`, 'utf8');
 }
