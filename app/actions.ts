@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { createProject, writeMarkdown } from '@/lib/hwos';
+import { createProject, updateResearchStatus, writeMarkdown } from '@/lib/hwos';
 
 export async function createProjectAction(formData: FormData) {
   const name = String(formData.get('name') ?? '');
@@ -18,4 +18,13 @@ export async function saveMarkdownAction(formData: FormData) {
   revalidatePath('/projects');
   revalidatePath('/knowledge');
   revalidatePath('/agents');
+}
+
+export async function updateResearchStatusAction(formData: FormData) {
+  const slug = String(formData.get('slug') ?? '');
+  const deliverableId = String(formData.get('deliverableId') ?? '');
+  const status = String(formData.get('status') ?? '');
+  await updateResearchStatus(slug, deliverableId, status);
+  revalidatePath(`/projects/${slug}`);
+  revalidatePath(`/projects/${slug}/research`);
 }

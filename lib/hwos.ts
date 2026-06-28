@@ -20,6 +20,8 @@ export type Deliverable = {
   status: PipelineStatus;
 };
 
+export type ResearchStatusMap = Record<string, PipelineStatus>;
+
 export const researchDeliverables: Omit<Deliverable, 'status'>[] = [
   { id: 'RD-01', title: 'Research Execution Plan', fileName: 'RD-01-research-execution-plan.md' },
   { id: 'RD-02', title: 'Research Intake Register', fileName: 'RD-02-research-intake-register.md' },
@@ -47,6 +49,16 @@ export function slugify(value: string) {
 
 function projectDir(slug: string) {
   return path.join(rootDir, 'projects', slug);
+}
+
+function defaultResearchStatuses(): ResearchStatusMap {
+  return Object.fromEntries(
+    researchDeliverables.map((item) => [item.id, 'Not Started']),
+  ) as ResearchStatusMap;
+}
+
+function validateProjectSlug(slug: string) {
+  if (slug !== slugify(slug)) throw new Error('Invalid project slug');
 }
 
 export async function ensureSeedContent() {
@@ -90,7 +102,10 @@ export async function writeMarkdown(relativePath: string, content: string) {
 export async function listProjects() {
   const dir = path.join(rootDir, 'projects');
   const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
-  return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+  return entries
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .sort();
 }
 
 export async function createProject(name: string) {
@@ -100,14 +115,49 @@ export async function createProject(name: string) {
   await fs.mkdir(path.join(base, 'input'), { recursive: true });
   await fs.mkdir(path.join(base, 'research'), { recursive: true });
   await Promise.all(inputFiles.map((file) => writeIfMissing(`projects/${slug}/input/${file}`, `# ${file.replace('.md', '').replaceAll('-', ' ')}\n\n`)));
-  await Promise.all(researchDeliverables.map((item) => writeIfMissing(`projects/${slug}/research/${item.fileName}`, `# ${item.id}: ${item.title}\n\nStatus: Not Started\n\n## Notes\n\nTODO: AI execution support will populate this deliverable in a later release.\n`)));
+  await Promise.all(researchDeliverables.map((item) => writeIfMissing(`projects/${slug}/research/${item.fileName}`, `# ${item.id}: ${item.title}\n\n## Notes\n\nTODO: AI execution support will populate this deliverable in a later release.\n`)));
+  await writeIfMissing(
+    `projects/${slug}/research/status.json`,
+    `${JSON.stringify(defaultResearchStatuses(), null, 2)}\n`,
+  );
   return slug;
 }
 
 export async function getProjectDeliverables(slug: string): Promise<Deliverable[]> {
-  return Promise.all(researchDeliverables.map(async (item) => {
-    const content = await readMarkdown(`projects/${slug}/research/${item.fileName}`).catch(() => '');
-    const status = pipelineStatuses.find((candidate) => content.includes(`Status: ${candidate}`)) ?? 'Not Started';
-    return { ...item, status };
-  }));
+  const statuses = await readResearchStatuses(slug);
+  return researchDeliverables.map((item) => ({ ...item, status: statuses[item.id] }));
+}
+
+export async function readResearchStatuses(slug: string): Promise<ResearchStatusMap> {
+  validateProjectSlug(slug);
+  const statusPath = path.join(projectDir(slug), 'research', 'status.json');
+  const defaults = defaultResearchStatuses();
+
+  let saved: unknown = {};
+  try {
+    saved = JSON.parse(await fs.readFile(statusPath, 'utf8'));
+  } catch {
+    // Missing or invalid status files are repaired with safe defaults.
+  }
+
+  const values = saved && typeof saved === 'object' ? saved as Record<string, unknown> : {};
+  const statuses = Object.fromEntries(researchDeliverables.map((item) => {
+    const value = values[item.id];
+    return [item.id, pipelineStatuses.includes(value as PipelineStatus) ? value : defaults[item.id]];
+  })) as ResearchStatusMap;
+
+  await fs.mkdir(path.dirname(statusPath), { recursive: true });
+  await fs.writeFile(statusPath, `${JSON.stringify(statuses, null, 2)}\n`, 'utf8');
+  return statuses;
+}
+
+export async function updateResearchStatus(slug: string, deliverableId: string, status: string) {
+  validateProjectSlug(slug);
+  if (!researchDeliverables.some((item) => item.id === deliverableId)) throw new Error('Invalid deliverable');
+  if (!pipelineStatuses.includes(status as PipelineStatus)) throw new Error('Invalid status');
+
+  const statuses = await readResearchStatuses(slug);
+  statuses[deliverableId] = status as PipelineStatus;
+  const statusPath = path.join(projectDir(slug), 'research', 'status.json');
+  await fs.writeFile(statusPath, `${JSON.stringify(statuses, null, 2)}\n`, 'utf8');
 }
