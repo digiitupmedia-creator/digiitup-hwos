@@ -15,3 +15,5 @@ HWOS v0.1 is file-based and must be run locally. Production storage will be adde
 Run the app locally and open `/knowledge/import` to paste a canonical Markdown document. The importer detects Parts and Chapters conservatively, preserves the complete source in an immutable export and version snapshot, writes structured chapter files under `knowledge/documents/{slug}/`, and records validation metadata. Existing package slugs are never overwritten.
 
 Imported packages are available at `/knowledge/packages`. Vercel and production previews remain read-only.
+
+Knowledge Engine v0.5 distinguishes canonical Markdown headings from ChatGPT continuation metadata. Repeated `Part:`, `Chapter:`, `Continuation:`, and `Part X of N` markers remain in the imported content but no longer create false boundaries. Optional expected Part and Chapter counts can be supplied during import and are reported as validation warnings when the canonical output differs.

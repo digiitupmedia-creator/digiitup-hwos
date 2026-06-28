@@ -54,7 +54,7 @@ export async function importKnowledge(input: KnowledgeImportInput): Promise<Know
   }
 
   const parsed = parseMarkdown(input.rawMarkdown, input.status.trim());
-  const validation = validateParsedKnowledge(parsed, input.status, version);
+  const validation = validateParsedKnowledge(parsed, input.status, version, input.expectedParts, input.expectedChapters);
   if (!validation.valid) return { success: false, validation, error: 'Markdown failed structural validation.' };
 
   const importedAt = new Date().toISOString();
@@ -76,11 +76,14 @@ export async function importKnowledge(input: KnowledgeImportInput): Promise<Know
     totalParts: parsed.parts.length,
     totalChapters: chapters.length,
     totalWordCount: chapters.reduce((total, chapter) => total + chapter.wordCount, 0),
+    expectedParts: input.expectedParts,
+    expectedChapters: input.expectedChapters,
     filePath: packageRelativePath,
     exportPath,
     snapshotPath,
     parts: parsed.parts,
     chapters: chapters.map(({ content: _content, ...chapter }) => chapter),
+    parserDiagnostics: parsed.diagnostics,
     validation,
   };
 

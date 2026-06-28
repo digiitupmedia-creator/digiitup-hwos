@@ -12,6 +12,8 @@ export function validateParsedKnowledge(
   parsed: ParsedKnowledgeDocument,
   status: string,
   version: string,
+  expectedParts?: number,
+  expectedChapters?: number,
 ): KnowledgeValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -20,6 +22,12 @@ export function validateParsedKnowledge(
   if (!status.trim()) errors.push('Document status is required.');
   if (!version.trim()) errors.push('Document version is required.');
   if (parsed.parts.some((part) => !part.detected)) warnings.push('One or more chapters have no detected part heading.');
+  if (expectedParts && parsed.parts.length !== expectedParts) {
+    warnings.push(`Expected ${expectedParts} parts but produced ${parsed.parts.length}.`);
+  }
+  if (expectedChapters && parsed.chapters.length !== expectedChapters) {
+    warnings.push(`Expected ${expectedChapters} chapters but produced ${parsed.chapters.length}.`);
+  }
 
   const chapterNumbers = new Map<string, number>();
   for (const chapter of parsed.chapters) {
@@ -32,8 +40,8 @@ export function validateParsedKnowledge(
   for (const [number, count] of chapterNumbers) {
     if (count > 1) warnings.push(`Chapter number ${number} appears ${count} times; unique chapter IDs were generated.`);
   }
-  if (parsed.repeatedContinuationMarkers > 0) {
-    warnings.push(`Detected ${parsed.repeatedContinuationMarkers} repeated Continuation marker(s).`);
+  if (parsed.diagnostics.mergedContinuationCount > 0) {
+    warnings.push(`Merged ${parsed.diagnostics.mergedContinuationCount} continuation boundary marker(s).`);
   }
   return { valid: errors.length === 0, errors, warnings };
 }
