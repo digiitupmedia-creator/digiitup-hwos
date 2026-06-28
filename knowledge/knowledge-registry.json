@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "documents": [
+    {
+      "id": "K-01",
+      "title": "Healthcare Patient Psychology",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "canonical-knowledge",
+      "filePath": "knowledge/01-healthcare-patient-psychology.md",
+      "description": "Patient needs, fears, trust signals, and healthcare conversion motivations.",
+      "dependencies": [],
+      "ownedBy": "knowledge",
+      "immutable": true
+    },
+    {
+      "id": "K-02",
+      "title": "Healthcare Decision Journey",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "canonical-knowledge",
+      "filePath": "knowledge/02-healthcare-decision-journey.md",
+      "description": "Reusable patient journey from symptom awareness to provider selection.",
+      "dependencies": ["K-01"],
+      "ownedBy": "knowledge",
+      "immutable": true
+    },
+    {
+      "id": "K-03",
+      "title": "Universal Healthcare Information Model",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "canonical-knowledge",
+      "filePath": "knowledge/03-universal-healthcare-information-model.md",
+      "description": "Shared model for healthcare services, conditions, providers, locations, proof, FAQs, and calls to action.",
+      "dependencies": ["K-01", "K-02"],
+      "ownedBy": "knowledge",
+      "immutable": true
+    },
+    {
+      "id": "K-04",
+      "title": "Universal Healthcare Website Architecture",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "canonical-knowledge",
+      "filePath": "knowledge/04-universal-healthcare-website-architecture.md",
+      "description": "Baseline sitemap and section architecture for healthcare websites.",
+      "dependencies": ["K-01", "K-02", "K-03"],
+      "ownedBy": "knowledge",
+      "immutable": true
+    },
+    {
+      "id": "ARCH-RESEARCH",
+      "title": "Research Department Architecture",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "department-architecture",
+      "filePath": "departments/research/research-department-architecture.md",
+      "description": "Research responsibilities, handoffs, workflow, and quality controls.",
+      "dependencies": [],
+      "ownedBy": "research",
+      "immutable": true
+    },
+    {
+      "id": "MAP-RESEARCH",
+      "title": "Research Deliverable Map",
+      "version": "1.0.0",
+      "status": "Active",
+      "category": "department-document",
+      "filePath": "departments/research/research-deliverable-map.md",
+      "description": "Mapping of RD-01 through RD-11 to research outcomes.",
+      "dependencies": ["ARCH-RESEARCH"],
+      "ownedBy": "research",
+      "immutable": true
+    }
+  ]
+}
