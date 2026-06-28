@@ -1,9 +1,16 @@
+import { updateResearchStatusAction } from '@/app/actions';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
-import { readMarkdown } from '@/lib/hwos';
+import { getProjectDeliverables, pipelineStatuses, readMarkdown } from '@/lib/hwos';
 
-export default async function DeliverableEditor({ params }: { params: Promise<{ slug: string; file: string }> }) {
-  const { slug, file } = await params;
+export default async function DeliverableEditor({ params }: { params: { slug: string; file: string } }) {
+  const { slug, file } = params;
   const filePath = `projects/${slug}/research/${decodeURIComponent(file)}`;
-  const content = await readMarkdown(filePath);
-  return <div className="space-y-4"><h1 className="text-3xl font-bold">{decodeURIComponent(file)}</h1><MarkdownEditor filePath={filePath} content={content} /></div>;
+  const [content, deliverables] = await Promise.all([
+    readMarkdown(filePath),
+    getProjectDeliverables(slug),
+  ]);
+  const deliverable = deliverables.find((item) => item.fileName === decodeURIComponent(file));
+  if (!deliverable) throw new Error('Unknown research deliverable');
+
+  return <div className="space-y-4"><h1 className="text-3xl font-bold">{decodeURIComponent(file)}</h1><form action={updateResearchStatusAction} className="flex flex-wrap items-end gap-3 rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm"><input type="hidden" name="slug" value={slug} /><input type="hidden" name="deliverableId" value={deliverable.id} /><label><span className="block text-sm font-semibold text-emerald-900">Status</span><select name="status" defaultValue={deliverable.status} className="mt-2 rounded-xl border border-emerald-100 bg-white p-3 outline-none focus:border-emerald-400">{pipelineStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label><button className="rounded-full bg-emerald-700 px-5 py-2 font-semibold text-white hover:bg-emerald-800">Update status</button></form><MarkdownEditor filePath={filePath} content={content} /></div>;
 }
