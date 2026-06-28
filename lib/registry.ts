@@ -9,11 +9,14 @@ export type KnowledgeDocument = {
   version: string;
   status: string;
   category: string;
-  filePath: string;
+  filePath?: string;
   description: string;
   dependencies: string[];
   ownedBy: string;
   immutable: boolean;
+  packageType?: 'single-file' | 'multi-chapter';
+  packagePath?: string;
+  packageSlug?: string;
 };
 
 export type KnowledgeRegistry = {
@@ -79,4 +82,18 @@ export function loadResearchWorkflow() {
 
 export function resolveProjectPath(filePath: string, projectSlug?: string) {
   return projectSlug ? filePath.replaceAll('{projectSlug}', projectSlug) : filePath;
+}
+
+export async function resolveKnowledgeDocumentPath(document: KnowledgeDocument) {
+  if (document.packageType === 'multi-chapter' && document.packagePath) {
+    try {
+      const metadata = JSON.parse(
+        await fs.readFile(path.join(rootDir, document.packagePath, 'metadata.json'), 'utf8'),
+      ) as { exportPath?: string };
+      return metadata.exportPath ?? null;
+    } catch {
+      return null;
+    }
+  }
+  return document.filePath ?? null;
 }

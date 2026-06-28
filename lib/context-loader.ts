@@ -6,6 +6,7 @@ import {
   loadAgentRegistry,
   loadKnowledgeRegistry,
   loadResearchWorkflow,
+  resolveKnowledgeDocumentPath,
   resolveProjectPath,
 } from '@/lib/registry';
 import { validateAgentContext } from '@/lib/validation';
@@ -13,6 +14,7 @@ import { validateAgentContext } from '@/lib/validation';
 const rootDir = process.cwd();
 
 export type LoadedDocument = KnowledgeDocument & {
+  resolvedFilePath: string | null;
   content: string | null;
   exists: boolean;
 };
@@ -36,11 +38,13 @@ async function loadFile(id: string, filePath: string, source: LoadedFile['source
 }
 
 async function loadDocument(document: KnowledgeDocument): Promise<LoadedDocument> {
+  const resolvedFilePath = await resolveKnowledgeDocumentPath(document);
+  if (!resolvedFilePath) return { ...document, resolvedFilePath, content: null, exists: false };
   try {
-    const content = await fs.readFile(path.join(rootDir, document.filePath), 'utf8');
-    return { ...document, content, exists: true };
+    const content = await fs.readFile(path.join(rootDir, resolvedFilePath), 'utf8');
+    return { ...document, resolvedFilePath, content, exists: true };
   } catch {
-    return { ...document, content: null, exists: false };
+    return { ...document, resolvedFilePath, content: null, exists: false };
   }
 }
 

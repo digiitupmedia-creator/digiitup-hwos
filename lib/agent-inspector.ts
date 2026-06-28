@@ -5,6 +5,7 @@ import {
   loadAgentRegistry,
   loadKnowledgeRegistry,
   loadResearchWorkflow,
+  resolveKnowledgeDocumentPath,
   resolveProjectPath,
 } from '@/lib/registry';
 
@@ -57,23 +58,29 @@ export async function inspectAgent(agentId: string) {
 
   const requiredKnowledge = await Promise.all((agent.requiredKnowledge ?? []).map(async (id) => {
     const document = documents.get(id);
-    const exists = document ? await fileExists(document.filePath) : false;
+    const filePath = document ? await resolveKnowledgeDocumentPath(document) : null;
+    const exists = filePath ? await fileExists(filePath) : false;
     if (!document) warnings.push(`Required knowledge ${id} is not registered.`);
-    else if (!exists) warnings.push(`Required knowledge file is missing: ${document.filePath}`);
-    return { id, title: document?.title ?? 'Unknown document', filePath: document?.filePath ?? null, exists };
+    else if (!exists) warnings.push(`Required knowledge file is missing: ${filePath ?? document.packagePath ?? document.filePath ?? 'no path configured'}`);
+    return { id, title: document?.title ?? 'Unknown document', filePath, exists };
   }));
 
   const requiredArchitectures = await Promise.all((agent.requiredArchitectures ?? []).map(async (id) => {
     const document = documents.get(id);
-    const exists = document ? await fileExists(document.filePath) : false;
+    const filePath = document ? await resolveKnowledgeDocumentPath(document) : null;
+    const exists = filePath ? await fileExists(filePath) : false;
     if (!document) warnings.push(`Required architecture ${id} is not registered.`);
-    else if (!exists) warnings.push(`Required architecture file is missing: ${document.filePath}`);
-    return { id, title: document?.title ?? 'Unknown document', filePath: document?.filePath ?? null, exists };
+    else if (!exists) warnings.push(`Required architecture file is missing: ${filePath ?? document.packagePath ?? document.filePath ?? 'no path configured'}`);
+    return { id, title: document?.title ?? 'Unknown document', filePath, exists };
   }));
 
   const requiredDocuments = await Promise.all((agent.requiredDocuments ?? []).map(async (reference) => {
     const document = documents.get(reference);
-    const filePath = document?.filePath ?? resolveProjectPath(reference, '.template');
+    const filePath = document ? await resolveKnowledgeDocumentPath(document) : resolveProjectPath(reference, '.template');
+    if (!filePath) {
+      warnings.push(`Required document ${reference} has no resolvable file path.`);
+      return { id: reference, title: document?.title ?? 'Project document', filePath: 'Unresolved', exists: false };
+    }
     const exists = await fileExists(filePath);
     if (!document && !reference.includes('{projectSlug}')) warnings.push(`Required document ${reference} is not registered.`);
     else if (!exists) warnings.push(`Required document is missing: ${filePath}`);

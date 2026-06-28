@@ -11,7 +11,8 @@
       "description": "Patient needs, fears, trust signals, and healthcare conversion motivations.",
       "dependencies": [],
       "ownedBy": "knowledge",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     },
     {
       "id": "K-02",
@@ -23,7 +24,8 @@
       "description": "Reusable patient journey from symptom awareness to provider selection.",
       "dependencies": ["K-01"],
       "ownedBy": "knowledge",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     },
     {
       "id": "K-03",
@@ -35,7 +37,8 @@
       "description": "Shared model for healthcare services, conditions, providers, locations, proof, FAQs, and calls to action.",
       "dependencies": ["K-01", "K-02"],
       "ownedBy": "knowledge",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     },
     {
       "id": "K-04",
@@ -47,7 +50,8 @@
       "description": "Baseline sitemap and section architecture for healthcare websites.",
       "dependencies": ["K-01", "K-02", "K-03"],
       "ownedBy": "knowledge",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     },
     {
       "id": "ARCH-RESEARCH",
@@ -59,7 +63,8 @@
       "description": "Research responsibilities, handoffs, workflow, and quality controls.",
       "dependencies": [],
       "ownedBy": "research",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     },
     {
       "id": "MAP-RESEARCH",
@@ -71,7 +76,8 @@
       "description": "Mapping of RD-01 through RD-11 to research outcomes.",
       "dependencies": ["ARCH-RESEARCH"],
       "ownedBy": "research",
-      "immutable": true
+      "immutable": true,
+      "packageType": "single-file"
     }
   ]
 }
