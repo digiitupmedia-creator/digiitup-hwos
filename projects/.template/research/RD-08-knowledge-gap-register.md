@@ -1,0 +1,7 @@
+# RD: knowledge gap register
+
+Status: Not Started
+
+## Notes
+
+TODO: AI execution support will populate this deliverable in a later release.
