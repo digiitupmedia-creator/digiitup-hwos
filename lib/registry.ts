@@ -26,6 +26,7 @@ export type AgentDefinition = {
   name: string;
   department: string;
   role: string;
+  instructionFile: string | null;
   inputDeliverables: string[];
   outputDeliverables: string[];
   requiredKnowledge: string[];
