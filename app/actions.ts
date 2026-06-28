@@ -37,6 +37,8 @@ export async function importKnowledgeAction(formData: FormData) {
   if (isReadOnlyMode) {
     redirect(`/knowledge/import?error=${encodeURIComponent('Knowledge import is available only in local development.')}`);
   }
+  const expectedParts = Number(formData.get('expectedParts'));
+  const expectedChapters = Number(formData.get('expectedChapters'));
   const result = await importKnowledge({
     documentId: String(formData.get('documentId') ?? ''),
     title: String(formData.get('title') ?? ''),
@@ -45,6 +47,8 @@ export async function importKnowledgeAction(formData: FormData) {
     status: String(formData.get('status') ?? ''),
     sourceFileName: String(formData.get('sourceFileName') ?? ''),
     rawMarkdown: String(formData.get('rawMarkdown') ?? ''),
+    expectedParts: Number.isInteger(expectedParts) && expectedParts > 0 ? expectedParts : undefined,
+    expectedChapters: Number.isInteger(expectedChapters) && expectedChapters > 0 ? expectedChapters : undefined,
   });
   if (!result.success || !result.package) {
     const message = result.error ?? result.validation.errors.join(' ') ?? 'Knowledge import failed.';

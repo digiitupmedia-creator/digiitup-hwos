@@ -25,6 +25,16 @@ export type KnowledgePart = {
   chapterIds: string[];
 };
 
+export type KnowledgeParserDiagnostics = {
+  rawPartsDetected: number;
+  rawChapterMarkersDetected: number;
+  canonicalPartsProduced: number;
+  canonicalChaptersProduced: number;
+  mergedContinuationCount: number;
+  duplicateChapterMarkersHandled: number;
+  continuationMarkersDetected: number;
+};
+
 export type KnowledgePackage = {
   documentId: string;
   title: string;
@@ -36,11 +46,14 @@ export type KnowledgePackage = {
   totalParts: number;
   totalChapters: number;
   totalWordCount: number;
+  expectedParts?: number;
+  expectedChapters?: number;
   filePath: string;
   exportPath: string;
   snapshotPath: string;
   parts: KnowledgePart[];
   chapters: Omit<KnowledgeChapter, 'content'>[];
+  parserDiagnostics?: KnowledgeParserDiagnostics;
   validation: KnowledgeValidationResult;
 };
 
@@ -52,6 +65,8 @@ export type KnowledgeImportInput = {
   status: string;
   sourceFileName: string;
   rawMarkdown: string;
+  expectedParts?: number;
+  expectedChapters?: number;
 };
 
 export type KnowledgeImportResult = {
@@ -64,5 +79,5 @@ export type KnowledgeImportResult = {
 export type ParsedKnowledgeDocument = {
   parts: KnowledgePart[];
   chapters: KnowledgeChapter[];
-  repeatedContinuationMarkers: number;
+  diagnostics: KnowledgeParserDiagnostics;
 };
